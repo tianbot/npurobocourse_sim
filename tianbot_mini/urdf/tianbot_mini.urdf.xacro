@@ -60,7 +60,52 @@
         <xacro:property name="mesh_size" value="${apriltag_size/6*8}" />
       </xacro:if>
     </xacro:if>
-    
+  
+      <link name="${namespace}${name}">
+      <inertial>
+        <mass value="0.001" />
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <inertia ixx="0.00001" ixy="0" ixz="0" iyy="0.00001" iyz="0" izz="0.00002" />
+      </inertial>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <box size="${mesh_size} ${mesh_size} 0.001" />
+        </geometry>
+      </collision>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <!-- use Python str to convert family name and to generate leading zeros -->
+          <mesh filename="package://tams_apriltags/meshes/tag${str(family).replace( 'h', '_' )}_${str(ID).zfill(5)}.dae" scale="${10*mesh_size} ${10*mesh_size} 1"/>
+        </geometry>
+      </visual>
+    </link>
+    <joint
+      name="apriltag_joint"
+      type="fixed">
+      <origin
+        xyz="0.0 0 0.059"
+        rpy="0 1.57 0" />
+      <parent link="${tf_prefix}laser" />
+      <child link="${namespace}${name}" />
+      <axis
+        xyz="0 0 0" />
+    </joint>
+
+    <!-- we use Gazebo material to put the texture onto the marker. Note mu1=mu2=0 for no friction. -->
+    <gazebo reference="${namespace}${name}">
+      <!-- <material>Gazebo/Red</material> -->
+      <turnGravityOff>false</turnGravityOff>
+      <selfCollide>false</selfCollide>
+      <mu1>0</mu1>
+      <mu2>0</mu2>
+      <kp>1000000.0</kp>
+      <kd>1.0</kd>
+    </gazebo>
+
+  </xacro:macro>
+
     <link name="${tf_prefix}base_link"/>
 
     <link name="${tf_prefix}chassis">
@@ -95,7 +140,7 @@
       <child link="${tf_prefix}chassis" />
     </joint>
 
-  <link name="${tf_prefix}chassis_inertia">
+    <link name="${tf_prefix}chassis_inertia">
     <inertial>
         <origin
           xyz="0.024853469830173 2.97664242950762E-05 0.0250543140056088"
@@ -392,40 +437,6 @@
         xyz="0 0 0" />
     </joint>
 
-
-    <link name="${namespace}${name}">
-      <inertial>
-        <mass value="0.001" />
-        <origin xyz="0 0 0" rpy="0 0 0" />
-        <inertia ixx="0.00001" ixy="0" ixz="0" iyy="0.00001" iyz="0" izz="0.00002" />
-      </inertial>
-      <collision>
-        <origin xyz="0 0 0" rpy="0 0 0" />
-        <geometry>
-          <box size="${mesh_size} ${mesh_size} 0.001" />
-        </geometry>
-      </collision>
-      <visual>
-        <origin xyz="0 0 0" rpy="0 0 0" />
-        <geometry>
-          <!-- use Python str to convert family name and to generate leading zeros -->
-          <mesh filename="package://tams_apriltags/meshes/tag${str(family).replace( 'h', '_' )}_${str(ID).zfill(5)}.dae" scale="${10*mesh_size} ${10*mesh_size} 1"/>
-        </geometry>
-      </visual>
-    </link>
-    <joint
-      name="apriltag_joint"
-      type="fixed">
-      <origin
-        xyz="0.0 0 0.059"
-        rpy="0 1.57 0" />
-      <parent link="${tf_prefix}laser" />
-      <child link="${namespace}${name}" />
-      <axis
-        xyz="0 0 0" />
-    </joint>   
-
-
     <gazebo reference="${tf_prefix}base_link">
       <material>Gazebo/Grey</material>
     </gazebo>
@@ -460,7 +471,7 @@
       <minDepth>0.001</minDepth>
     </gazebo>
   
-  <!-- controller -->
+    <!-- controller -->
     <gazebo>
       <plugin name="differential_drive_controller" 
               filename="libgazebo_ros_diff_drive.so">
@@ -486,23 +497,5 @@
         <robotBaseFrame>${tf_prefix}base_link</robotBaseFrame>
       </plugin>
     </gazebo> 
-
-
-    <!-- we use Gazebo material to put the texture onto the marker. Note mu1=mu2=0 for no friction. -->
-    <gazebo reference="${namespace}${name}">
-      <!-- <material>Gazebo/Red</material> -->
-      <turnGravityOff>false</turnGravityOff>
-      <selfCollide>false</selfCollide>
-      <mu1>0</mu1>
-      <mu2>0</mu2>
-      <kp>1000000.0</kp>
-      <kd>1.0</kd>
-    </gazebo>
-  <!--   <joint name="apriltag_joint" type="fixed">
-      <xacro:insert_block name="origin" />
-      <parent link="${tf_prefix}laser" />
-      <child link="${namespace}${name}" />
-    </joint>  -->
-  </xacro:macro>
 
 </robot>
